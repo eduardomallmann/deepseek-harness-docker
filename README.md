@@ -35,6 +35,14 @@ Data lives under `/data` (run as user `node`, uid 1000):
 - `/data/.dsh` (`DSH_HOME`): sessions, settings, credentials.
 - `/data/workspace`: the agent's working directory.
 
+### Bundled plugins
+
+The image ships with [`dsh-remote`](https://github.com/flymysql/dsh-remote) (SSH remote workspaces) preinstalled. Plugins are baked into a seed profile and copied to `/data/.dsh/profiles/web` the first time the container starts on a volume that has no web profile. An existing profile is never touched, so on an older volume add the plugin from the UI or with `dsh plugin --profile web add dsh-remote`.
+
+To change the bundled set, edit the `DSH_PLUGINS` build argument in the `Dockerfile` (space-separated `name@version`). If a plugin's dependencies have build scripts, list them under `allowBuilds` in `profile/pnpm-workspace.yaml`, otherwise pnpm fails the install.
+
+More plugins can be added at runtime from the UI; they are stored in the volume.
+
 ### Why a relay
 
 Releases up to `0.2.0` only bind `127.0.0.1` and refuse `0.0.0.0`. By default the entrypoint keeps dsh on loopback and runs `socat` to forward the container's own address to it. From `0.2.1` on, set `DSH_HOST` to the container address to bind natively instead.

@@ -1,0 +1,10 @@
+packages:
+  - .
+
+nodeLinker: hoisted
+autoInstallPeers: false
+# Optional native builds of the bundled plugins' dependencies. Declined: the image has
+# no compiler, and pnpm fails the install while a build script is left undecided.
+allowBuilds:
+  cpu-features: false
+  ssh2: false

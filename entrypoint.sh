@@ -6,6 +6,13 @@ if [ "$#" -gt 0 ]; then
     exec "$@"
 fi
 
+# First start on an empty volume: seed the web profile with the bundled plugins.
+profile="${DSH_HOME:-/data/.dsh}/profiles/web"
+if [ ! -e "$profile/package.json" ] && [ -d /opt/dsh-seed/profiles/web ]; then
+    mkdir -p "$profile"
+    cp -a /opt/dsh-seed/profiles/web/. "$profile/"
+fi
+
 port="${DSH_PORT:-3080}"
 
 if [ -n "${DSH_HOST:-}" ]; then

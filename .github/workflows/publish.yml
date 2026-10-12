@@ -3,7 +3,7 @@ name: Publish image
 on:
   push:
     branches: [main]
-    paths: [VERSION, Dockerfile, entrypoint.sh, .github/workflows/publish.yml]
+    paths: [VERSION, Dockerfile, entrypoint.sh, "profile/**", .github/workflows/publish.yml]
   workflow_dispatch:
     inputs:
       version:
