@@ -13,6 +13,22 @@ if [ ! -e "$profile/package.json" ] && [ -d /opt/dsh-seed/profiles/web ]; then
     cp -a /opt/dsh-seed/profiles/web/. "$profile/"
 fi
 
+# Optional cloud-drive mounts: comma-separated `remote:path=/mount/point`. Needs the container
+# started with /dev/fuse and SYS_ADMIN. A failed mount is reported and dsh starts anyway.
+old_ifs="$IFS"
+IFS=,
+for mount in ${RCLONE_MOUNTS:-}; do
+    remote="${mount%=*}"
+    target="${mount##*=}"
+    mkdir -p "$target"
+    if rclone mount "$remote" "$target" --daemon; then
+        echo "rclone: mounted $remote on $target"
+    else
+        echo "rclone: could not mount $remote on $target" >&2
+    fi
+done
+IFS="$old_ifs"
+
 port="${DSH_PORT:-3080}"
 
 if [ -n "${DSH_HOST:-}" ]; then

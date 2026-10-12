@@ -43,6 +43,33 @@ To change the bundled set, edit the `DSH_PLUGINS` build argument in the `Dockerf
 
 More plugins can be added at runtime from the UI; they are stored in the volume.
 
+### Cloud drives (rclone)
+
+[rclone](https://rclone.org/) is included so documents on Google Drive, OneDrive, Proton Drive and other backends can be used as folders. Its config lives in the volume at `/data/.config/rclone/rclone.conf` (`RCLONE_CONFIG`).
+
+Create a remote (OAuth backends need a browser, so authorize on a desktop and paste the token when `rclone config` asks for it):
+
+```bash
+# on a machine with a browser: prints a token after you log in
+docker run --rm -it --network host ghcr.io/eduardomallmann/deepseek-harness:latest \
+  rclone authorize "drive" "<client_id>" "<client_secret>"
+
+# in the running container: create the remote, answering "n" to "use web browser"
+docker exec -it dsh rclone config
+```
+
+Mount remotes at start with `RCLONE_MOUNTS`, a comma-separated list of `remote:path=/mount/point`:
+
+```bash
+docker run -d --name dsh \
+  --device /dev/fuse --cap-add SYS_ADMIN --security-opt apparmor:unconfined \
+  -e RCLONE_MOUNTS="gdrive:=/data/drive/gdrive" \
+  -p 127.0.0.1:3080:3080 -v dsh-data:/data \
+  ghcr.io/eduardomallmann/deepseek-harness:latest
+```
+
+Mounting needs `/dev/fuse` and `SYS_ADMIN`, which widen what a shell in the container can do; without them the mount fails with a log line and dsh still starts. Without mounting, `rclone copy`/`rclone sync` work unprivileged. Mounts use `--vfs-cache-mode writes` with a 1 GB cache by default; override with rclone's own `RCLONE_*` variables.
+
 ### Why a relay
 
 Releases up to `0.2.0` only bind `127.0.0.1` and refuse `0.0.0.0`. By default the entrypoint keeps dsh on loopback and runs `socat` to forward the container's own address to it. From `0.2.1` on, set `DSH_HOST` to the container address to bind natively instead.
